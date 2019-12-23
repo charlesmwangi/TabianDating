@@ -47,6 +47,7 @@ public class MessagesFragment extends Fragment {
         mSearchView = (SearchView) view.findViewById(R.id.action_search);
 
         getConnections();
+        //initialize the search view widget
         initSearchView();
 
         return view;

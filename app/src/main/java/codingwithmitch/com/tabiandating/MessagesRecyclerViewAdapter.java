@@ -68,6 +68,7 @@ public class MessagesRecyclerViewAdapter extends RecyclerView.Adapter<MessagesRe
             public void onClick(View v) {
                 Log.d(TAG, "onClick: clicked on: " + user.getName());
 
+                //
                mInterface.onMessageSelected(new Message(user, Messages.MESSAGES[position]));
             }
         });
