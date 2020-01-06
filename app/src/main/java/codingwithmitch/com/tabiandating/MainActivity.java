@@ -12,9 +12,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
@@ -31,6 +33,11 @@ public class MainActivity extends AppCompatActivity implements IMainActivity,
         BottomNavigationViewEx.OnNavigationItemSelectedListener,
         NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = "MainActivity";
+
+    //constants
+    private static final int HOME_FRAGMENT = 0;
+    private static final int CONNECTIONS_FRAGMENT = 1;
+    private static final int MESSAGES_FRAGMENT = 2;
 
     //widgets
     private BottomNavigationViewEx mBottomNavigationViewEx;
@@ -244,12 +251,98 @@ public class MainActivity extends AppCompatActivity implements IMainActivity,
         //set listener on the navigation view
         setNavigationViewListener();
     }
+    //hide the bottom navigation
+    private void hideBottomNavigation() {
+        if (mBottomNavigationViewEx != null) {
+            mBottomNavigationViewEx.setVisibility(View.GONE);
+        }
+    }
+    //show the bottom navigation
+    private void showBottomNavigation() {
+        if (mBottomNavigationViewEx != null) {
+            mBottomNavigationViewEx.setVisibility(View.VISIBLE);
+        }
+    }
+
     //initialize the bottom nav view
     private void initBottomNavigationView(){
         Log.d(TAG, "initBottomNavigationView: initializing bottom navigation view");
         mBottomNavigationViewEx.enableAnimation(false);
 
     }
+    //override back button
+    @Override
+    public void onBackPressed() {
+        //disable the normal back behaviour of the back button by commenting out the following line
+        //super.onBackPressed();
+
+        //get number of fragments in the Stack
+        int backStackCount = mFragmentTags.size();
+        //check if its greator than 1
+        if (backStackCount>1){
+            //nav backward
+            //remove the fragment on top
+            //first fragment
+            String topFragmentTag = mFragmentTags.get(backStackCount - 1);
+            //second fragment
+            String navTopFragmentTag = mFragmentTags.get(backStackCount - 2);
+            //set visibility
+            setFragmentVisibility(navTopFragmentTag);
+            //remove the previous fragment
+            mFragmentTags.remove(topFragmentTag);
+
+            //reset  the backstack
+            mExitCount = 0;
+        }
+        else if (backStackCount == 1){
+            //determine if top fragment is home fragment
+            String topFragmentTag = mFragmentTags.get(backStackCount - 1);
+            if (topFragmentTag.equals(getString(R.string.tag_fragment_home))){
+                //scroll to top of the fragment before exiting
+                mHomeFragment.scrollToTop();
+                //close the app
+                mExitCount++;
+                Toast.makeText(this,
+                        "1 more click to exit",Toast.LENGTH_SHORT).show();
+            }
+            else{
+                //close the app
+                mExitCount++;
+                Toast.makeText(this,
+                        "1 more click to exit",Toast.LENGTH_SHORT).show();
+            }
+
+        }
+        //close the app
+        if (mExitCount>=2){
+            super.onBackPressed();
+        }
+    }
+    //highlight icon selected on backstack
+    private void setNavigationIcon(String tagname){
+        Menu menu = mBottomNavigationViewEx.getMenu();
+        MenuItem menuItem = null;
+        //check which tag was passed
+        if(tagname.equals(getString(R.string.tag_fragment_home))){
+            Log.d(TAG, "setNavigationIcon: Home Fragment is visible");
+            //get menu item number, pass 0 cz home fragment is at index 0
+            menuItem = menu.getItem(HOME_FRAGMENT);
+            menuItem.setChecked(true);
+        }
+        else if(tagname.equals(getString(R.string.tag_fragment_saved_connections))){
+            Log.d(TAG, "setNavigationIcon: Connections Fragment is visible");
+            //get menu item number, pass 0 cz home fragment is at index 0
+            menuItem = menu.getItem(CONNECTIONS_FRAGMENT);
+            menuItem.setChecked(true);
+        }
+        else if(tagname.equals(getString(R.string.tag_fragment_messages))){
+            Log.d(TAG, "setNavigationIcon: Messages Fragment is visible");
+            //get menu item number, pass 0 cz home fragment is at index 0
+            menuItem = menu.getItem(MESSAGES_FRAGMENT);
+            menuItem.setChecked(true);
+        }
+    }
+
     //create the init method
     private void init(){
         //check if the frag has already been instantiated
@@ -278,6 +371,29 @@ public class MainActivity extends AppCompatActivity implements IMainActivity,
     }
     //control back stack,only show fragment which is on top
     private void setFragmentVisibility(String tagname){
+        //decide when to show the bottom navigation
+        if (tagname.equals(getString(R.string.tag_fragment_home))){
+            showBottomNavigation();
+        }
+        else if (tagname.equals(getString(R.string.tag_fragment_saved_connections))){
+            showBottomNavigation();
+        }
+        else if (tagname.equals(getString(R.string.tag_fragment_messages))){
+            showBottomNavigation();
+        }
+        else if (tagname.equals(getString(R.string.tag_fragment_settings))){
+            hideBottomNavigation();
+        }
+        else if (tagname.equals(getString(R.string.tag_fragment_agreement))){
+            hideBottomNavigation();
+        }
+        else if (tagname.equals(getString(R.string.tag_fragment_chat))){
+            hideBottomNavigation();
+        }
+        else if (tagname.equals(getString(R.string.tag_fragment_view_profile))){
+            hideBottomNavigation();
+        }
+
         for(int i=0; i<mFragments.size(); i++){
             if (tagname.equals(mFragments.get(i).getTag())){
                 //show this fragment
@@ -296,6 +412,8 @@ public class MainActivity extends AppCompatActivity implements IMainActivity,
                 transaction.commit();
             }
         }
+        //set icon visibility
+        setNavigationIcon(tagname);
     }
     //set listener for the drawer layout
     private void setNavigationViewListener(){

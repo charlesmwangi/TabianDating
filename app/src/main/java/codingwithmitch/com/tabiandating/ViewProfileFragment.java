@@ -1,6 +1,7 @@
 package codingwithmitch.com.tabiandating;
 
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -27,7 +28,7 @@ import codingwithmitch.com.tabiandating.util.Resources;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
-public class ViewProfileFragment extends Fragment implements OnLikeListener {
+public class ViewProfileFragment extends Fragment implements OnLikeListener ,View.OnClickListener{
 
     private static final String TAG = "ViewProfileFragment";
 
@@ -39,6 +40,7 @@ public class ViewProfileFragment extends Fragment implements OnLikeListener {
 
     //vars
     private User mUser;
+    private IMainActivity mInterface;
 
 
     @Override
@@ -121,7 +123,10 @@ public class ViewProfileFragment extends Fragment implements OnLikeListener {
         }
     }
 
-
+    private void initToolbar(){
+        Log.d(TAG, "initToolbar: initializing toolbar.");
+        mFragmentHeading.setText(getString(R.string.tag_fragment_view_profile));
+    }
     @Override
     public void liked(LikeButton likeButton) {
         Log.d(TAG, "liked: Liked.");
@@ -156,6 +161,25 @@ public class ViewProfileFragment extends Fragment implements OnLikeListener {
         //add set to the editor
         editor.putStringSet(PreferenceKeys.SAVED_CONNECTIONS, savedNames);
         editor.commit();
+    }
+    @Override
+    public void onClick(View view) {
+        if(view.getId() == R.id.back_arrow){
+            Log.d(TAG, "onClick: navigating back.");
+            mInterface.onBackPressed();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy: called.");
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+       // mInterface = (IMainActivity) getActivity();
     }
 }
 

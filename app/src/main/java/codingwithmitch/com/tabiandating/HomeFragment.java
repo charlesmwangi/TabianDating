@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -18,7 +19,7 @@ import codingwithmitch.com.tabiandating.models.User;
 import codingwithmitch.com.tabiandating.util.Users;
 
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
     private static final String TAG = "HomeFragment";
 
     //constants
@@ -26,6 +27,7 @@ public class HomeFragment extends Fragment {
 
     //widgets
     private RecyclerView mRecyclerView;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     //vars
     private ArrayList<User> mMatches = new ArrayList<>();
@@ -37,7 +39,12 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
       View view = inflater.inflate(R.layout.fragment_home,container,false);
         Log.d(TAG, "onCreateView: started home fragment");
+        //ref the views
         mRecyclerView = view.findViewById(R.id.recycler_view);
+        mSwipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+
+        //attach listener to the swipe view
+        mSwipeRefreshLayout.setOnRefreshListener(this);
 
         findMatches();
 
@@ -62,6 +69,21 @@ public class HomeFragment extends Fragment {
         mRecyclerViewAdapter = new MainRecyclerViewAdapter(getActivity(), mMatches);
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
     }
+    //scroll to top during bactstack
+    public void scrollToTop(){
+        mRecyclerView.smoothScrollToPosition(0);
+    }
 
+    @Override
+    public void onRefresh() {
+        //update the list
+        findMatches();
 
+        //check if refreshing is done
+        onItemsLoadComplete();
+    }
+    private void onItemsLoadComplete(){
+        mRecyclerViewAdapter.notifyDataSetChanged();
+        mSwipeRefreshLayout.setRefreshing(false);
+    }
 }

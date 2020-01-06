@@ -24,7 +24,7 @@ import codingwithmitch.com.tabiandating.util.PreferenceKeys;
 import codingwithmitch.com.tabiandating.util.Users;
 
 
-public class SavedConnectionsFragment extends Fragment{
+public class SavedConnectionsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener{
 
     private static final String TAG = "SavedConnFragment";
 
@@ -32,9 +32,9 @@ public class SavedConnectionsFragment extends Fragment{
     private static final int NUM_GRID_COLUMNS = 2;
 
     //widgets
-
     private MainRecyclerViewAdapter mRecyclerViewAdapter;
     private RecyclerView mRecyclerView;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     //vars
     private ArrayList<User> mUsers = new ArrayList<>();
@@ -46,7 +46,10 @@ public class SavedConnectionsFragment extends Fragment{
         Log.d(TAG, "onCreateView: started.");
 
         mRecyclerView = view.findViewById(R.id.recycler_view);
+        mSwipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
 
+        //attach listener to the swipe view
+        mSwipeRefreshLayout.setOnRefreshListener(this);
         getConnections();
 
         return view;
@@ -78,6 +81,16 @@ public class SavedConnectionsFragment extends Fragment{
         mRecyclerView.setLayoutManager(staggeredGridLayoutManager);
     }
 
+    @Override
+    public void onRefresh() {
+        //update the list
+        getConnections();
 
-
+        //check if refreshing is done
+        onItemsLoadComplete();
+    }
+    private void onItemsLoadComplete(){
+        mRecyclerViewAdapter.notifyDataSetChanged();
+        mSwipeRefreshLayout.setRefreshing(false);
+    }
 }

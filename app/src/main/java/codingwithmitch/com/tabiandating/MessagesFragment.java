@@ -25,7 +25,7 @@ import codingwithmitch.com.tabiandating.util.PreferenceKeys;
 import codingwithmitch.com.tabiandating.util.Users;
 
 
-public class MessagesFragment extends Fragment {
+public class MessagesFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener{
 
     private static final String TAG = "MessagesFragment";
 
@@ -33,6 +33,7 @@ public class MessagesFragment extends Fragment {
     private MessagesRecyclerViewAdapter mRecyclerViewAdapter;
     private RecyclerView mRecyclerView;
     private SearchView mSearchView;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     //vars
     private ArrayList<User> mUsers = new ArrayList<>();
@@ -45,6 +46,10 @@ public class MessagesFragment extends Fragment {
         Log.d(TAG, "onCreateView: started.");
         mRecyclerView = view.findViewById(R.id.recycler_view);
         mSearchView = (SearchView) view.findViewById(R.id.action_search);
+        mSwipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+
+        //attach listener to the swipe view
+        mSwipeRefreshLayout.setOnRefreshListener(this);
 
         getConnections();
         //initialize the search view widget
@@ -103,7 +108,24 @@ public class MessagesFragment extends Fragment {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 
+    @Override
+    public void onRefresh() {
+        //update the list
+        getConnections();
 
+        //check if refreshing is done
+        onItemsLoadComplete();
+    }
+    private void onItemsLoadComplete(){
+        mRecyclerViewAdapter.notifyDataSetChanged();
+        mSwipeRefreshLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy: called.");
+    }
 
 
 }

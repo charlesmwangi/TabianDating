@@ -103,6 +103,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
         setBackgroundImage(view);
         initToolbar();
         getSavedPreferences();
+        checkPermissions();
 
 
         return view;
@@ -162,6 +163,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
 
         if(view.getId() == R.id.back_arrow){
             Log.d(TAG, "onClick: navigating back.");
+            mInterface.onBackPressed();
 
         }
 
@@ -170,9 +172,76 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
             savePreferences();
         }
 
-        if(view.getId() == R.id.profile_image){
+        if(view.getId() == R.id.profile_image) {
             Log.d(TAG, "onClick: opening activity to choose a photo.");
+            if (mPermissionsChecked) {
+                Intent intent = new Intent(getActivity(), ChoosePhotoActivity.class);
+                startActivityForResult(intent, NEW_PHOTO_REQUEST);
+            } else {
+                checkPermissions();
+            }
+        }
+    }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: OnActivityResult Called");
+        //check for results
+        if (resultCode == NEW_PHOTO_REQUEST){
+            Log.d(TAG, "onActivityResult: received an activity from photo request");
+            //check if data is null
+            if (data != null){
+                //check if its an image from gallery or camera
+                if (data.hasExtra(getString(R.string.intent_new_gallery_photo))){
+                    //load the image
+                    Glide.with(this)
+                            .load(data.getStringExtra(getString(R.string.intent_new_gallery_photo)))
+                            .into(mProfileImage);
+                    //set the image url to a global variable
+                    mSelectedImageUrl = data.getStringExtra(getString(R.string.intent_new_gallery_photo));
+                }
+                //set image from camera
+                else if (data.hasExtra(getString(R.string.intent_new_camera_photo))){
+                    //load the image
+                    Glide.with(this)
+                            .load(data.getStringExtra(getString(R.string.intent_new_camera_photo)))
+                            .into(mProfileImage);
+                    //set the image url to a global variable
+                    mSelectedImageUrl = data.getStringExtra(getString(R.string.intent_new_camera_photo));
+                }
+            }
+        }
+    }
+
+    private void checkPermissions() {
+        final boolean cameraGranted =
+                ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED;
+        final boolean storageGranted =
+                ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED;
+
+
+        String[] perms = null;
+        if (cameraGranted) {
+            if (storageGranted) {
+                mPermissionsChecked = true;
+            }
+            else{
+                perms = new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+            }
+        } else {
+            if (!storageGranted) {
+                perms = new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+            } else {
+                perms = new String[] {Manifest.permission.CAMERA};
+            }
+        }
+
+        if (perms != null) {
+            ActivityCompat.requestPermissions(getActivity(), perms, VERIFY_PERMISSIONS_REQUEST);
+            mPermissionsChecked = false;
         }
     }
 
@@ -235,6 +304,11 @@ public class SettingsFragment extends Fragment implements View.OnClickListener, 
     }
 
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy: called.");
+    }
 }
 
 
